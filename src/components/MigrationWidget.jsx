@@ -1,14 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Connection, PublicKey } from '@solana/web3.js'
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
-import { ConnectionProvider, WalletProvider, useWallet } from '@solana/wallet-adapter-react'
-import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-react-ui'
-import { PhantomWalletAdapter, SolflareWalletAdapter, BackpackWalletAdapter } from '@solana/wallet-adapter-wallets'
-import '@solana/wallet-adapter-react-ui/styles.css'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 
 const SOLANA_RPC = import.meta.env.VITE_SOLANA_RPC || 'https://api.mainnet-beta.solana.com'
 
-function InnerWidget() {
+export default function MigrationWidget() {
   const { publicKey } = useWallet()
   const [oldMint, setOldMint] = useState('')
   const [eligible, setEligible] = useState(null)
@@ -26,7 +23,6 @@ function InnerWidget() {
       setLoading(true)
       const owner = new PublicKey(publicKey.toBase58())
       const mint = new PublicKey(oldMint)
-      // Simplified: query token accounts by owner+mint
       const resp = await connection.getTokenAccountsByOwner(owner, { mint })
       let total = 0n
       for (const acc of resp.value) {
@@ -72,19 +68,5 @@ function InnerWidget() {
         )}
       </div>
     </div>
-  )
-}
-
-export default function MigrationWidget() {
-  const network = WalletAdapterNetwork.Mainnet
-  const wallets = useMemo(() => [new PhantomWalletAdapter(), new SolflareWalletAdapter(), new BackpackWalletAdapter()], [])
-  return (
-    <ConnectionProvider endpoint={SOLANA_RPC}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          <InnerWidget />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
   )
 }
